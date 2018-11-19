@@ -1,3 +1,8 @@
+FROM alpine:3.8 as mozbuild
+RUN apk --update add autoconf automake build-base libtool nasm git cmake
+RUN mkdir /src && cd /src && git clone git://github.com/mozilla/mozjpeg.git
+RUN cd /src/mozjpeg && mkdir build && cd build && CMAKE_INSTALL_PREFIX=/opt/mozjpeg cmake .. && make && make install
+
 FROM node:10-alpine
 
 #2 Add Edge and bleeding repos
@@ -7,7 +12,7 @@ RUN echo "@edge-testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /e
 
 RUN mkdir /src
 WORKDIR /src
-
+COPY --from=mozbuild /opt/mozjpeg /opt/mozjpeg
 ADD /bin/CMakeLists.txt /bin/CMakeLists.txt
 ADD /bin/facedetect.cpp /bin/facedetect.cpp
 ADD scripts/install_deps.sh /install_deps.sh
